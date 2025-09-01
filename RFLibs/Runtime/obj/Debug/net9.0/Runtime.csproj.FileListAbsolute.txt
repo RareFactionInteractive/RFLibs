@@ -1,0 +1,11 @@
+/Users/adam/Runtime/RFLibs/Runtime/bin/Debug/net9.0/Runtime.deps.json
+/Users/adam/Runtime/RFLibs/Runtime/bin/Debug/net9.0/Runtime.dll
+/Users/adam/Runtime/RFLibs/Runtime/bin/Debug/net9.0/Runtime.pdb
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/Runtime.GeneratedMSBuildEditorConfig.editorconfig
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/Runtime.AssemblyInfoInputs.cache
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/Runtime.AssemblyInfo.cs
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/Runtime.csproj.CoreCompileInputs.cache
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/Runtime.dll
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/refint/Runtime.dll
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/Runtime.pdb
+/Users/adam/Runtime/RFLibs/Runtime/obj/Debug/net9.0/ref/Runtime.dll

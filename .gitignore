@@ -2,9 +2,10 @@
 **/[Bb]in/
 **/[Oo]bj/
 
-# Rider / IntelliJ
+# Rider settings
 .idea/
 *.sln.iml
+*.DotSettings.user
 
 # Visual Studio
 .vs/

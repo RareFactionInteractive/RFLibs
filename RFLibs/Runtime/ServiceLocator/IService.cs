@@ -1,4 +1,4 @@
-namespace Runtime.ServiceLocator;
+namespace RFLibs.ServiceLocator;
 
 public interface IService
 {

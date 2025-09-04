@@ -1,4 +1,4 @@
-﻿using Runtime.ServiceLocator;
+﻿using RFLibs.ServiceLocator;
 
 namespace UnitTests
 {
@@ -13,14 +13,14 @@ namespace UnitTests
         {
         }
 
-        [Test]
+        [Test, Order(0)]
         public void ServiceLocatorCanBind()
         {
             var dummyService = ServiceLocator.Bind<IDummyService>(new DummyService());
             Assert.That(dummyService, Is.Not.Null);
         }
 
-        [Test]
+        [Test, Order(1)]
         public void ServiceLocatorCanGet()
         {
             var result = ServiceLocator.TryGet<IDummyService>(out var dummyService);
@@ -32,7 +32,7 @@ namespace UnitTests
             });
         }
         
-        [Test]
+        [Test, Order(2)]
         public void ServiceLocatorCanUnbind()
         {
             var result = ServiceLocator.Unbind<IDummyService>();
@@ -42,6 +42,16 @@ namespace UnitTests
                 Assert.That(ServiceLocator.TryGet<IDummyService>(out var dummyService), Is.False);
                 Assert.That(dummyService, Is.Null);
             });
+        }
+
+        [Test, Order(3)]
+        public void ServiceLocatorCallsWhenBoundCallbacks()
+        {
+             var callbackDidFire = false;
+             ServiceLocator.WhenBound<IDummyService>(_ => callbackDidFire = true);
+             ServiceLocator.Bind<IDummyService>(new DummyService());
+             
+             Assert.That(callbackDidFire, Is.True);
         }
     }
 }

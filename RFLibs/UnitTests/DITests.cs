@@ -33,8 +33,10 @@ namespace UnitTests
         
         private class DummyTestApplication
         {
-            [Inject] private ITestService _testService;
+            [Inject] public ITestService _testService;
             public bool Test => _testService.PerformTest();
+
+            public int GetHashcode => _testService.GetHashCode();
         }
 
         private class ComplexApplication
@@ -161,6 +163,7 @@ namespace UnitTests
         {
             // DummyTestService is marked with [ServiceScope(ServiceScope.Singleton)]
             var container = new DIContainer();
+            container.Bind<ITestService>(new DummyTestService());
 
             var app1 = new DummyTestApplication();
             var app2 = new DummyTestApplication();
@@ -170,8 +173,7 @@ namespace UnitTests
             DIContext.Container.InjectDependencies(app2);
 
             // Both should get the same singleton instance (if not bound explicitly)
-            Assert.That(app1.Test, Is.True);
-            Assert.That(app2.Test, Is.True);
+            Assert.That(app1.Test.GetHashCode(), Is.EqualTo(app2.Test.GetHashCode()));
         }
 
         [Test, Order(6)]

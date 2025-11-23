@@ -23,12 +23,6 @@ namespace RFLibs.DI
             return this;
         }
 
-        public DIContainer Bind<TInterface, TImplementation>()
-        {
-            
-            return this;
-        }
-
         public Result<T, bool> Resolve<T>()
         {
             var result = Resolve(typeof(T));

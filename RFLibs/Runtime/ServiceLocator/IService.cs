@@ -1,6 +1,7 @@
-namespace RFLibs.ServiceLocator;
-
-public interface IService
+namespace RFLibs.ServiceLocator
 {
-    
+    public interface IService
+    {
+
+    }
 }

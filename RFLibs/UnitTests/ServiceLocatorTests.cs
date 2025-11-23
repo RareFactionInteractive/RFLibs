@@ -1,12 +1,13 @@
-﻿using RFLibs.ServiceLocator;
+﻿using NUnit.Framework;
+using RFLibs.ServiceLocator;
 
 namespace UnitTests
 {
     public class ServiceLocatorTests
     {
-        private interface IDummyService : IService;
+        private interface IDummyService : IService { }
 
-        private class DummyService : IDummyService;
+        private class DummyService : IDummyService { }
 
         [SetUp]
         public void Setup()

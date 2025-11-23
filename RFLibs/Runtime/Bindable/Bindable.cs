@@ -1,24 +1,27 @@
-namespace RFLibs.Bindable;
+using System;
 
-public class Bindable<T>
+namespace RFLibs.Bindable
 {
-    private T _value;
-
-    public T Value
+    public class Bindable<T> : IBindableEndpoint<T>
     {
-        get => _value;
-        set
+        private T _value;
+
+        public T Value
         {
-            if (Equals(_value, value)) return;
-            _value = value;
-            OnValueChanged?.Invoke(_value);
+            get => _value;
+            set
+            {
+                if (Equals(_value, value)) return;
+                _value = value;
+                OnValueChanged?.Invoke(_value);
+            }
         }
-    }
-    
-    public event Action<T>? OnValueChanged;
 
-    public Bindable(T initialValue)
-    {
-        _value = initialValue;
+        public event Action<T>? OnValueChanged;
+
+        public Bindable(T initialValue)
+        {
+            _value = initialValue;
+        }
     }
 }

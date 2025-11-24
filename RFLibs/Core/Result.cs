@@ -19,8 +19,8 @@ namespace RFLibs.Core
                 IsOk = isOk;
             }
 
-            public static Result<T, TE> OK(T value) => new(value, default, true);
-            public static Result<T, TE> Error(TE error) => new(default, error, false);
+            public static Result<T, TE> OK(T value) => new(value, default!, true);
+            public static Result<T, TE> Error(TE error) => new(default!, error, false);
 
             public bool Equals(Result<T, TE> other)
             {
@@ -35,7 +35,11 @@ namespace RFLibs.Core
                 return false;
             }
 
-            public override bool Equals(object obj) => obj is Result<T, TE> result && Equals(result);
+            public override bool Equals(object? obj)
+            {
+                if (obj == null) return false;
+                return obj is Result<T, TE> result && Equals(result);
+            }
 
             public override int GetHashCode()
             {

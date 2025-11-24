@@ -26,7 +26,7 @@ namespace RFLibs.ServiceLocator
             return service;
         }
 
-        public static bool TryGet<T>(out T? service) where T : IService
+        public static bool TryGet<T>(out T? service) where T : class, IService
         {
             service = default;
             if (!_SERVICE_CONTAINER.TryGetValue(typeof(T), out var existingService))
@@ -34,7 +34,7 @@ namespace RFLibs.ServiceLocator
                 return false;
             }
 
-            service = (T)existingService;
+            service = (T?)existingService;
             return true;
         }
 

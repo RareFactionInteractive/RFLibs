@@ -2,33 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using RFLibs.Core.BEGiN.Core;
+using RFLibs.Core;
 
 namespace RFLibs.DI
 {
     public class DIContainer
     {
         private readonly Dictionary<Type, object> _instances = new();
-        private readonly ServiceScope _defaultScope;
 
-        public DIContainer(ServiceScope defaultScope = ServiceScope.Singleton)
+        public Result<bool, DIErrors> Bind<TInterface>(object implementation)
         {
-            _defaultScope = defaultScope;
-        }
+            if (implementation is not TInterface)
+            {
+                return Result<bool, DIErrors>.Error(DIErrors.InvalidType);
+            }
 
-        public DIContainer Bind<TInterface>(object implementation)
-        {
-            if(implementation is not TInterface) throw new ArgumentException($"Cannot bind {implementation.GetType()} to {typeof(TInterface)}");
             _instances[typeof(TInterface)] = implementation;   
-            return this;
+            return Result<bool, DIErrors>.OK(true);
         }
 
-        public Result<T, bool> Resolve<T>()
+        public Result<T, DIErrors> Resolve<T>()
         {
             var result = Resolve(typeof(T));
             return result.IsOk ? 
-                Result<T, bool>.OK((T)result.Ok) :
-                Result<T, bool>.Error(false);
+                Result<T, DIErrors>.OK((T)result.Ok) :
+                Result<T, DIErrors>.Error(DIErrors.CannotResolve);
         }
 
         private Result<object, bool> Resolve(Type type)
@@ -46,8 +44,8 @@ namespace RFLibs.DI
 
             foreach (var field in fields)
             {
-                var dependency = Resolve(field.FieldType).Ok;
-                field.SetValue(instance, dependency);
+                var dependency = Resolve(field.FieldType);
+                field.SetValue(instance, dependency.Ok);
             }
         }
 

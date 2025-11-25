@@ -21,7 +21,7 @@ namespace UnitTests
             void Log(string message);
         }
 
-        [ServiceScope(ServiceScope.Singleton)]
+        [Lifetime(Lifetime.Singleton)]
         private class DummyTestService : ITestService
         {
             public bool PerformTest()
@@ -30,12 +30,13 @@ namespace UnitTests
             }
         }
 
+        [Lifetime(Lifetime.Transient)]
         private class CalculatorService : ICalculatorService
         {
             public int Add(int a, int b) => a + b;
         }
 
-        [ServiceScope(ServiceScope.Scene)]
+        [Scope(Scope.Scene)]
         private class LoggerService : ILoggerService
         {
             public string LastMessage { get; private set; }
@@ -191,6 +192,24 @@ namespace UnitTests
             Assert.That(DI.Resolve<ITestService>().IsOk);
             DI.Clear();
             Assert.That(DI.Resolve<ITestService>().IsErr);
+        }
+
+        [Test, Order(12)]
+        public void TransientLifetimeCreatesNewInstancesOnEachResolve()
+        {
+            // CalculatorService is marked with [Lifetime(Lifetime.Transient)]
+            DI.Bind<ICalculatorService>(new CalculatorService());
+
+            var instance1 = DI.Resolve<ICalculatorService>();
+            var instance2 = DI.Resolve<ICalculatorService>();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(instance1.IsOk, "First resolve should succeed");
+                Assert.That(instance2.IsOk, "Second resolve should succeed");
+                Assert.That(Object.ReferenceEquals(instance1.Ok, instance2.Ok), Is.False, 
+                    "Transient should create new instances, not reuse the same one");
+            });
         }
 
         [TearDown]

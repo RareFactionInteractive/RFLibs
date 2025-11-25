@@ -5,7 +5,7 @@ namespace RFLibs.Bindable
     public interface IReadableEndpoint<T>
     {
         T Value { get; }
-        event Action<T> OnValueChanged; // fires when Value *logically* changes
+        event Action<T, T> OnValueChanged;
     }
 
     public interface IWritableEndpoint<T>
@@ -13,7 +13,6 @@ namespace RFLibs.Bindable
         T Value { get; set; }
     }
 
-// Readable + Writable = Two-way capable
     public interface IBindableEndpoint<T> : IReadableEndpoint<T>, IWritableEndpoint<T>
     {
     }

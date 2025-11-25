@@ -47,33 +47,39 @@ namespace RFLibs.DI
             }
 
             var implementationType = implementation.GetType();
-            var scopeAttribute = (ServiceScopeAttribute)Attribute.GetCustomAttribute(
+            
+            // Read Lifetime attribute (default: Singleton)
+            var lifetimeAttribute = (LifetimeAttribute)Attribute.GetCustomAttribute(
                 implementationType, 
-                typeof(ServiceScopeAttribute)
+                typeof(LifetimeAttribute)
             );
+            var lifetime = lifetimeAttribute?.Lifetime ?? Lifetime.Singleton;
 
-            // Determine scope: default to Transient if no attribute
-            var scope = scopeAttribute?.Scope ?? ServiceScope.Transient;
+            // Read Scope attribute (default: Global)
+            var scopeAttribute = (ScopeAttribute)Attribute.GetCustomAttribute(
+                implementationType, 
+                typeof(ScopeAttribute)
+            );
+            var scope = scopeAttribute?.Scope ?? Scope.Global;
 
             // Route to appropriate container based on scope
             switch (scope)
             {
-                case ServiceScope.Singleton:
-                case ServiceScope.Transient:
+                case Scope.Global:
                     // Bind to global container
                     if (_globalContainer == null)
                     {
                         InitializeGlobal();
                     }
-                    return _globalContainer.Bind(implementation);
+                    return _globalContainer.Bind(implementation, lifetime);
 
-                case ServiceScope.Scene:
+                case Scope.Scene:
                     // Bind to scene container
                     if (_sceneContainer == null)
                     {
                         InitializeScene();
                     }
-                    return _sceneContainer.Bind(implementation);
+                    return _sceneContainer.Bind(implementation, lifetime);
 
                 default:
                     return Result<bool, DIErrors>.Error(DIErrors.NullBinding);

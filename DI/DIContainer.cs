@@ -8,16 +8,29 @@ namespace RFLibs.DI
 {
     internal class DIContainer
     {
-        private readonly Dictionary<Type, object> _instances = new();
+        private class RegistrationInfo
+        {
+            public object Instance { get; set; }
+            public Lifetime Lifetime { get; set; }
+            public Type ConcreteType { get; set; }
+        }
 
-        public Result<bool, DIErrors> Bind<TInterface>(TInterface implementation)
+        private readonly Dictionary<Type, RegistrationInfo> _registrations = new();
+
+        public Result<bool, DIErrors> Bind<TInterface>(TInterface implementation, Lifetime lifetime)
         {
             if (implementation == null)
             {
                 return Result<bool, DIErrors>.Error(DIErrors.NullBinding);
             }
 
-            _instances[typeof(TInterface)] = implementation;   
+            _registrations[typeof(TInterface)] = new RegistrationInfo
+            {
+                Instance = implementation,
+                Lifetime = lifetime,
+                ConcreteType = implementation.GetType()
+            };
+            
             return Result<bool, DIErrors>.OK(true);
         }
 
@@ -31,9 +44,27 @@ namespace RFLibs.DI
 
         private Result<object, bool> Resolve(Type type)
         {
-            return _instances.TryGetValue(type, out var existing) 
-                ? Result<object, bool>.OK(existing) :
-                Result<object, bool>.Error(false);
+            if (!_registrations.TryGetValue(type, out var registration))
+            {
+                return Result<object, bool>.Error(false);
+            }
+
+            // For Singleton, return the cached instance
+            if (registration.Lifetime == Lifetime.Singleton)
+            {
+                return Result<object, bool>.OK(registration.Instance);
+            }
+
+            // For Transient, create a new instance
+            try
+            {
+                var newInstance = Activator.CreateInstance(registration.ConcreteType);
+                return Result<object, bool>.OK(newInstance);
+            }
+            catch
+            {
+                return Result<object, bool>.Error(false);
+            }
         }
 
         public void InjectDependencies(object instance)
@@ -51,7 +82,7 @@ namespace RFLibs.DI
 
         public void Clear()
         {
-            _instances.Clear();
+            _registrations.Clear();
         }
     }
 }

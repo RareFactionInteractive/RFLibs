@@ -45,15 +45,18 @@ namespace UnitTests
         [Test, Order(0)]
         public void BindableNotifiesWhenValueChanges()
         {
+            const int initialVal = 0;
             const int testVal = 42;
-            var callbackVal = 0;
+            var callbackOldVal = -1;
+            var callbackNewVal = -1;
             var didEventFire = false;
 
-            Bindable<int> bindableInt = new(0);
-            bindableInt.OnValueChanged += i =>
+            Bindable<int> bindableInt = new(initialVal);
+            bindableInt.OnValueChanged += (oldVal, newVal) =>
             {
                 didEventFire = true;
-                callbackVal = i;
+                callbackOldVal = oldVal;
+                callbackNewVal = newVal;
             };
 
             bindableInt.Value = testVal;
@@ -62,7 +65,8 @@ namespace UnitTests
             {
                 Assert.That(didEventFire, Is.True);
                 Assert.That(bindableInt.Value, Is.EqualTo(testVal));
-                Assert.That(callbackVal, Is.EqualTo(bindableInt.Value));
+                Assert.That(callbackOldVal, Is.EqualTo(initialVal), "Old value should match initial value");
+                Assert.That(callbackNewVal, Is.EqualTo(testVal), "New value should match test value");
             });
         }
     }

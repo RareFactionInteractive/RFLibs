@@ -12,12 +12,13 @@ namespace RFLibs.Bindable
             set
             {
                 if (Equals(_value, value)) return;
+                var oldValue = _value;
                 _value = value;
-                OnValueChanged?.Invoke(_value);
+                OnValueChanged?.Invoke(oldValue, _value);
             }
         }
 
-        public event Action<T>? OnValueChanged;
+        public event Action<T, T>? OnValueChanged;
 
         public Bindable(T initialValue)
         {

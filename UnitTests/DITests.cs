@@ -6,9 +6,20 @@ namespace UnitTests
 {
     public class DITests
     {
-        private interface ITestService { bool PerformTest(); }
-        private interface ICalculatorService { int Add(int a, int b); }
-        private interface ILoggerService { void Log(string message); }
+        private interface ITestService
+        {
+            bool PerformTest();
+        }
+
+        private interface ICalculatorService
+        {
+            int Add(int a, int b);
+        }
+
+        private interface ILoggerService
+        {
+            void Log(string message);
+        }
 
         [ServiceScope(ServiceScope.Singleton)]
         private class DummyTestService : ITestService
@@ -24,18 +35,19 @@ namespace UnitTests
             public int Add(int a, int b) => a + b;
         }
 
+        [ServiceScope(ServiceScope.Scene)]
         private class LoggerService : ILoggerService
         {
             public string LastMessage { get; private set; }
             public void Log(string message) => LastMessage = message;
         }
-        
+
         private class DummyTestApplication
         {
             [Inject] public ITestService _testService;
             public bool Test => _testService.PerformTest();
 
-            public int GetHashcode => _testService.GetHashCode();
+            public new int GetHashCode() => _testService.GetHashCode();
         }
 
         private class ComplexApplication
@@ -46,9 +58,11 @@ namespace UnitTests
 
             public bool TestAll()
             {
-                var result = _testService?.PerformTest() ?? false;
-                var calculation = _calculatorService?.Add(2, 3) ?? 0;
-                _loggerService?.Log($"Test result: {result}, Calculation: {calculation}");
+                var result = _testService.PerformTest();
+                Console.WriteLine($"Test result: {result}");
+                var calculation = _calculatorService.Add(2, 3);
+                Console.WriteLine($"Calculation: {calculation}");
+                _loggerService.Log($"Test result: {result}, Calculation: {calculation}");
                 return result && calculation == 5;
             }
 
@@ -58,78 +72,53 @@ namespace UnitTests
         private class ServiceWithDependency
         {
             [Inject] private ILoggerService _logger;
-            
+
             public void DoWork()
             {
-                _logger?.Log("Work completed");
+                _logger.Log("Work completed");
             }
-            
+
             public ILoggerService GetLogger() => _logger;
-        }
-        
-        [SetUp]
-        public void Setup()
-        {
-            DI.InitializeGlobal(new DIContainer())
-                .Bind<ITestService>(new DummyTestService());
         }
 
         [Test, Order(0)]
-        public void DIContainerCanInjectDependencies()
+        public void DICanInjectDependencies()
         {
+            DI.Bind<ITestService>(new DummyTestService());
+
             var testApplication = new DummyTestApplication();
             DI.InjectDependencies(testApplication);
-            
+
             Assert.That(testApplication.Test, Is.True);
         }
 
         [Test, Order(1)]
-        public void DIContainerCanBindMultipleServices()
+        public void DICanBindMultipleServices()
         {
-            var container = new DIContainer();
-            container.Bind<ITestService>(new DummyTestService());
-            container.Bind<ICalculatorService>(new CalculatorService());
-            container.Bind<ILoggerService>(new LoggerService());
-
-            DI.InitializeGlobal(container);
+            Assert.Multiple(() =>
+            {
+                Assert.That(DI.Bind<ITestService>(new DummyTestService()).IsOk);
+                Assert.That(DI.Bind<ICalculatorService>(new CalculatorService()).IsOk);
+                Assert.That(DI.Bind<ILoggerService>(new LoggerService()).IsOk);
+            });
 
             var app = new ComplexApplication();
             DI.InjectDependencies(app);
 
+            Assert.That(app.TestAll(), Is.True);
+            
             Assert.Multiple(() =>
             {
-                Assert.That(app.TestAll(), Is.True);
-                Assert.That(((LoggerService)app.GetLogger()).LastMessage, Is.EqualTo("Test result: True, Calculation: 5"));
-            });
-        }
-
-        [Test, Order(2)]
-        public void DIContainerBindValidatesTypeCompatibility()
-        {
-            var container = new DIContainer();
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(container.Bind<ITestService>(new DummyTestService()).IsOk);
-                Assert.That(container.Bind<ITestService>(new CalculatorService()).IsErr);
-                Assert.That(container.Bind<ITestService>(new CalculatorService()).Err, Is.EqualTo(DIErrors.InvalidType));
+                Assert.That(((LoggerService)app.GetLogger()).LastMessage,
+                    Is.EqualTo("Test result: True, Calculation: 5"));
             });
         }
 
         [Test, Order(3)]
-        public void SceneContainerTakesPrecedenceOverGlobalContainer()
+        public void DIContainerHandlesSceneScope()
         {
-            // Setup global container
-            var globalLogger = new LoggerService();
-            var globalContainer = new DIContainer();
-            globalContainer.Bind<ILoggerService>(globalLogger);
-            DI.InitializeGlobal(globalContainer);
-
-            // Create a different instance for scene container
             var sceneLogger = new LoggerService();
-            var sceneContainer = new DIContainer();
-            sceneContainer.Bind<ILoggerService>(sceneLogger);
-            DI.InitializeScene(sceneContainer);
+            DI.Bind<ILoggerService>(sceneLogger);
 
             var service = new ServiceWithDependency();
             DI.InjectDependencies(service);
@@ -140,125 +129,74 @@ namespace UnitTests
                 // Should use the scene container's logger
                 Assert.That(service.GetLogger(), Is.SameAs(sceneLogger));
                 Assert.That(sceneLogger.LastMessage, Is.EqualTo("Work completed"));
-                Assert.That(globalLogger.LastMessage, Is.Null);
-            });
-        }
-
-        [Test, Order(4)]
-        public void GlobalContainerUsedWhenSceneContainerIsNull()
-        {
-            var globalLogger = new LoggerService();
-            var globalContainer = new DIContainer();
-            globalContainer.Bind<ILoggerService>(globalLogger);
-            DI.InitializeGlobal(globalContainer);
-
-            // Ensure scene container is null
-            DI.InitializeScene(null);
-
-            var service = new ServiceWithDependency();
-            DI.InjectDependencies(service);
-            service.DoWork();
-
-            Assert.Multiple(() =>
-            {
-                // Should fall back to global container's logger
-                Assert.That(service.GetLogger(), Is.SameAs(globalLogger));
-                Assert.That(globalLogger.LastMessage, Is.EqualTo("Work completed"));
             });
         }
 
         [Test, Order(5)]
-        public void DIContainerHandlesSingletonScope()
+        public void DIHandlesSingletonScope()
         {
             // DummyTestService is marked with [ServiceScope(ServiceScope.Singleton)]
-            var container = new DIContainer();
-            container.Bind<ITestService>(new DummyTestService());
+            DI.Bind<ITestService>(new DummyTestService());
 
             var app1 = new DummyTestApplication();
             var app2 = new DummyTestApplication();
 
-            DI.InitializeGlobal(container);
             DI.InjectDependencies(app1);
             DI.InjectDependencies(app2);
 
-            // Both should get the same singleton instance (if not bound explicitly)
-            Assert.That(app1.Test.GetHashCode(), Is.EqualTo(app2.Test.GetHashCode()));
+            Assert.Multiple(() =>
+            {
+                Assert.That(app1.GetHashCode(), Is.EqualTo(DI.Resolve<ITestService>().Ok.GetHashCode()));
+                Assert.That(app2.GetHashCode(), Is.EqualTo(DI.Resolve<ITestService>().Ok.GetHashCode()));
+            });
         }
 
         [Test, Order(6)]
-        public void DIContainerCanResolveDirectly()
+        public void DICanResolve()
         {
             var testService = new DummyTestService();
-            var container = new DIContainer();
-            container.Bind<ITestService>(testService);
+            DI.Bind<ITestService>(testService);
 
-            var resolved = container.Resolve<ITestService>();
-            
+            var resolved = DI.Resolve<ITestService>();
+
             Assert.Multiple(() =>
             {
                 Assert.That(resolved.IsOk);
                 Assert.That(resolved.Ok, Is.SameAs(testService));
             });
-            
         }
 
         [Test, Order(7)]
-        public void DIContainerThrowsWhenResolvingUnboundType()
+        public void DIReturnsErrorWhenResolvingUnboundType()
         {
-            var container = new DIContainer();
-            Assert.That(() => container.Resolve<ITestService>().IsErr);
+            DI.Clear();
+            Assert.That(DI.Resolve<ITestService>().IsErr);
         }
 
         [Test, Order(8)]
         public void DIContainerCanInjectIntoObjectsWithNoInjectableFields()
         {
             var objectWithoutDependencies = new object();
-            
+
             // Should not throw an exception when injecting into objects with no [Inject] fields
-            Assert.DoesNotThrow(() => 
+            Assert.DoesNotThrow(() =>
                 DI.InjectDependencies(objectWithoutDependencies));
         }
-
-        [Test, Order(9)]
-        public void DIContainerCanHandleChainedBinding()
-        {
-            var container = new DIContainer();
-            container.Bind<ITestService>(new DummyTestService());
-            container.Bind<ICalculatorService>(new CalculatorService());
-            container.Bind<ILoggerService>(new LoggerService());
-
-            // Test that chained binding returns a properly configured container
-            Assert.That(container, Is.Not.Null);
-            
-            DI.InitializeGlobal(container);
-            var app = new ComplexApplication();
-            
-            Assert.DoesNotThrow(() => DI.InjectDependencies(app));
-            Assert.That(app.TestAll(), Is.True);
-        }
-
-
 
         [Test, Order(11)]
         public void DIContainerClearRemovesAllBindings()
         {
-            var container = new DIContainer();
-            container.Bind<ITestService>(new DummyTestService());
+            DI.Bind<ITestService>(new DummyTestService());
 
-            // Verify service is bound
-            Assert.That(container.Resolve<ITestService>().IsOk);
-
-            // Clear and verify service is no longer available
-            container.Clear();
-            Assert.That(container.Resolve<ITestService>().IsErr);
+            Assert.That(DI.Resolve<ITestService>().IsOk);
+            DI.Clear();
+            Assert.That(DI.Resolve<ITestService>().IsErr);
         }
 
         [TearDown]
         public void TearDown()
         {
-            // Clean up containers after each test
-            DI.InitializeGlobal(null);
-            DI.InitializeScene(null);
+            DI.Clear();
         }
     }
 }

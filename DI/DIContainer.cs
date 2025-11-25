@@ -6,15 +6,15 @@ using RFLibs.Core;
 
 namespace RFLibs.DI
 {
-    public class DIContainer
+    internal class DIContainer
     {
         private readonly Dictionary<Type, object> _instances = new();
 
-        public Result<bool, DIErrors> Bind<TInterface>(object implementation)
+        public Result<bool, DIErrors> Bind<TInterface>(TInterface implementation)
         {
-            if (implementation is not TInterface)
+            if (implementation == null)
             {
-                return Result<bool, DIErrors>.Error(DIErrors.InvalidType);
+                return Result<bool, DIErrors>.Error(DIErrors.NullBinding);
             }
 
             _instances[typeof(TInterface)] = implementation;   

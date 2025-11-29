@@ -1,6 +1,6 @@
 using System;
 
-namespace RFLibs.DI
+namespace RFLibs.DependencyInjection.Attributes
 {
     /// <summary>
     /// Defines how instances are created when resolving dependencies.

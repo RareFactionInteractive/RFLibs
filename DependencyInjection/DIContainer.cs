@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using RFLibs.Core;
+using RFLibs.DependencyInjection.Attributes;
 
-namespace RFLibs.DI
+namespace RFLibs.DependencyInjection
+
 {
     internal class DIContainer
     {

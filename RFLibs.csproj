@@ -14,8 +14,14 @@
     <ItemGroup>
         <Compile Include="Bindable/**/*.cs" />
         <Compile Include="Core/**/*.cs" />
-        <Compile Include="DI/**/*.cs" />
-        <Compile Include="ServiceLocator/**/*.cs" />
+        <Compile Include="DependencyInjection/**/*.cs" />
+        <Compile Include="MVVM/**/*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>lib/UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
 </Project>

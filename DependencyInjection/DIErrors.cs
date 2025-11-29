@@ -1,4 +1,4 @@
-namespace RFLibs.DI
+ namespace RFLibs.DependencyInjection
 {
     public enum DIErrors
     {

@@ -1,8 +1,8 @@
 using System;
 
-namespace RFLibs.Bindable
+namespace RFLibs.MVVM
 {
-    public class Bindable<T> : IBindableEndpoint<T>
+    public class Bindable<T>
     {
         private T _value;
 
@@ -12,15 +12,14 @@ namespace RFLibs.Bindable
             set
             {
                 if (Equals(_value, value)) return;
-                var oldValue = _value;
                 _value = value;
-                OnValueChanged?.Invoke(oldValue, _value);
+                OnValueChanged?.Invoke(value);
             }
         }
 
-        public event Action<T, T>? OnValueChanged;
+        public event Action<T> OnValueChanged;
 
-        public Bindable(T initialValue)
+        public Bindable(T initialValue = default)
         {
             _value = initialValue;
         }

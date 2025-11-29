@@ -1,6 +1,6 @@
 using System;
 
-namespace RFLibs.DI
+namespace RFLibs.DependencyInjection.Attributes
 {
     /// <summary>
     /// Defines when service registrations are cleared.
@@ -15,7 +15,7 @@ namespace RFLibs.DI
         /// <summary>
         /// Registration is cleared when the scene is unloaded.
         /// </summary>
-        Scene
+        Scene        
     }
 
     /// <summary>

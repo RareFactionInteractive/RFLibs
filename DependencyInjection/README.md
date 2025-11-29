@@ -389,6 +389,93 @@ public class Player
 
 ---
 
+## Unity Scene Management
+
+The DI system integrates with Unity to manage scene-scoped services.
+
+### Automatic Scene Management (Recommended)
+
+Add the `DISceneManager` component to a GameObject in your scene for automatic cleanup:
+
+```csharp
+// DISceneManager.cs (included in RFLibs.DI.Unity)
+using RFLibs.Unity;
+
+public class GameSetup : MonoBehaviour
+{
+    void Awake()
+    {
+        // Add DISceneManager to handle automatic cleanup
+        gameObject.AddComponent<DISceneManager>();
+    }
+}
+```
+
+This will automatically call `DI.ClearSceneContainer()` when scenes are unloaded.
+
+### Manual Scene Management
+
+Alternatively, manually clear the scene container in your scene management code:
+
+```csharp
+using UnityEngine.SceneManagement;
+using RFLibs.DI;
+
+public class SceneLoader : MonoBehaviour
+{
+    void Start()
+    {
+        SceneManager.sceneUnloaded += OnSceneUnloaded;
+    }
+
+    void OnSceneUnloaded(Scene scene)
+    {
+        // Clear scene-scoped services
+        DI.ClearSceneContainer();
+        Debug.Log("Scene services cleared!");
+    }
+}
+```
+
+### Best Practices for Unity
+
+1. **Bootstrap Scene**: Bind global services in a persistent bootstrap scene
+2. **Level Scenes**: Bind scene-scoped services when levels load
+3. **Use `ClearSceneContainer()`**: Call when transitioning between levels
+4. **Don't use `Clear()`**: Only use `DI.Clear()` when restarting the entire game
+
+**Example:**
+```csharp
+// Bootstrap.cs - Persistent scene
+public class Bootstrap : MonoBehaviour
+{
+    void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+        
+        // Bind global services
+        DI.Bind<IAudioManager>(new AudioManager());
+        DI.Bind<IInputHandler>(new InputHandler());
+    }
+}
+
+// LevelSetup.cs - In each level scene
+public class LevelSetup : MonoBehaviour
+{
+    void Start()
+    {
+        // Bind level-specific services
+        DI.Bind<ILevelData>(new LevelData());
+        DI.Bind<IEnemySpawner>(new EnemySpawner());
+        
+        // Automatic cleanup via DISceneManager
+        gameObject.AddComponent<DISceneManager>();
+    }
+}
+```
+
+---
+
 ## License
 
 Part of the RFLibs library.

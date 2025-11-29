@@ -2,14 +2,14 @@ using System;
 using System.Linq;
 using System.Reflection;
 using RFLibs.Core;
+using RFLibs.DependencyInjection.Attributes;
 
-namespace RFLibs.DI
+namespace RFLibs.DependencyInjection
 {
     public static class DI
     {
         private static DIContainer _globalContainer;
         private static DIContainer _sceneContainer;
-
 
         private static void InitializeGlobal()
         {
@@ -113,6 +113,7 @@ namespace RFLibs.DI
 
         public static void InjectDependencies(object instance)
         {
+            // Inject into fields
             var fields = instance.GetType()
                 .GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
                 .Where(f => f.GetCustomAttribute<InjectAttribute>() != null);
@@ -133,6 +134,28 @@ namespace RFLibs.DI
                     field.SetValue(instance, okProperty.GetValue(result));
                 }
             }
+
+            // Inject into properties
+            var properties = instance.GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .Where(p => p.GetCustomAttribute<InjectAttribute>() != null && p.CanWrite);
+
+            foreach (var property in properties)
+            {
+                // Use DI.Resolve which checks both containers
+                var resolveMethod = typeof(DI).GetMethod(nameof(Resolve), BindingFlags.Public | BindingFlags.Static);
+                var genericResolve = resolveMethod.MakeGenericMethod(property.PropertyType);
+                var result = genericResolve.Invoke(null, null);
+                
+                var resultType = result.GetType();
+                var isOkProperty = resultType.GetProperty("IsOk");
+                var okProperty = resultType.GetProperty("Ok");
+                
+                if ((bool)isOkProperty.GetValue(result))
+                {
+                    property.SetValue(instance, okProperty.GetValue(result));
+                }
+            }
         }
 
         public static void Clear()
@@ -143,6 +166,19 @@ namespace RFLibs.DI
                 _globalContainer = null;
             }
             if(_sceneContainer != null)
+            {
+                _sceneContainer.Clear();
+                _sceneContainer = null;
+            }
+        }
+
+        /// <summary>
+        /// Clears only the scene container, preserving global services.
+        /// Call this when unloading a scene to clean up scene-scoped services.
+        /// </summary>
+        public static void ClearSceneContainer()
+        {
+            if (_sceneContainer != null)
             {
                 _sceneContainer.Clear();
                 _sceneContainer = null;

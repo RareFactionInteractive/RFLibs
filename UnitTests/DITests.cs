@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
-using RFLibs.DI;
+using RFLibs.DependencyInjection;
+using RFLibs.DependencyInjection.Attributes;
 
 namespace UnitTests
 {
@@ -80,6 +81,35 @@ namespace UnitTests
             }
 
             public ILoggerService GetLogger() => _logger;
+        }
+
+        private class ApplicationWithPropertyInjection
+        {
+            [Inject] public ITestService TestService { get; set; }
+            [Inject] public ICalculatorService CalculatorService { get; set; }
+
+            public bool RunTests()
+            {
+                var testResult = TestService.PerformTest();
+                var calcResult = CalculatorService.Add(10, 20);
+                return testResult && calcResult == 30;
+            }
+        }
+
+        private class ApplicationWithMixedInjection
+        {
+            [Inject] private ITestService _testServiceField;
+            [Inject] public ICalculatorService CalculatorProperty { get; set; }
+
+            public bool RunMixedTest()
+            {
+                var testResult = _testServiceField.PerformTest();
+                var calcResult = CalculatorProperty.Add(5, 7);
+                return testResult && calcResult == 12;
+            }
+
+            public ITestService GetFieldService() => _testServiceField;
+            public ICalculatorService GetPropertyService() => CalculatorProperty;
         }
 
         [Test, Order(0)]
@@ -209,6 +239,67 @@ namespace UnitTests
                 Assert.That(instance2.IsOk, "Second resolve should succeed");
                 Assert.That(Object.ReferenceEquals(instance1.Ok, instance2.Ok), Is.False, 
                     "Transient should create new instances, not reuse the same one");
+            });
+        }
+
+        [Test, Order(13)]
+        public void DICanInjectIntoFields()
+        {
+            // Bind required services
+            DI.Bind<ITestService>(new DummyTestService());
+            DI.Bind<ICalculatorService>(new CalculatorService());
+            DI.Bind<ILoggerService>(new LoggerService());
+
+            // Create application with field injection
+            var app = new ComplexApplication();
+            DI.InjectDependencies(app);
+
+            // Verify field injection worked
+            Assert.That(app.TestAll(), Is.True, "Field injection should successfully inject all dependencies");
+        }
+
+        [Test, Order(14)]
+        public void DICanInjectIntoProperties()
+        {
+            // Bind required services
+            DI.Bind<ITestService>(new DummyTestService());
+            DI.Bind<ICalculatorService>(new CalculatorService());
+
+            // Create application with property injection
+            var app = new ApplicationWithPropertyInjection();
+            DI.InjectDependencies(app);
+
+            // Verify property injection worked
+            Assert.Multiple(() =>
+            {
+                Assert.That(app.TestService, Is.Not.Null, "TestService property should be injected");
+                Assert.That(app.CalculatorService, Is.Not.Null, "CalculatorService property should be injected");
+                Assert.That(app.RunTests(), Is.True, "Property injection should successfully inject all dependencies");
+            });
+        }
+
+        [Test, Order(15)]
+        public void DICanInjectIntoMixedFieldsAndProperties()
+        {
+            // Bind required services
+            var testService = new DummyTestService();
+            var calcService = new CalculatorService();
+            DI.Bind<ITestService>(testService);
+            DI.Bind<ICalculatorService>(calcService);
+
+            // Create application with both field and property injection
+            var app = new ApplicationWithMixedInjection();
+            DI.InjectDependencies(app);
+
+            // Verify both field and property injection worked
+            Assert.Multiple(() =>
+            {
+                Assert.That(app.GetFieldService(), Is.SameAs(testService), 
+                    "Field injection should inject the correct instance");
+                Assert.That(app.GetPropertyService(), Is.Not.Null, 
+                    "Property injection should inject a service instance");
+                Assert.That(app.RunMixedTest(), Is.True, 
+                    "Mixed injection should successfully inject all dependencies");
             });
         }
 

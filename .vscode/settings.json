@@ -1,0 +1,14 @@
+{
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "dotnet-test-explorer.testProjectPath": [
+        "**/*Tests.csproj"
+    ],
+    "csharp.suppressBuildAssetsNotification": false,
+    "csharp.suppressDotnetRestoreNotification": false,
+    "dotnet.testWindow.useTestingPlatformProtocol": false,
+    "dotnet.unitTestDebuggingOptions": {
+        "args": [],
+        "env": {}
+    }
+}

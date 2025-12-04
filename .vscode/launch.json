@@ -11,32 +11,6 @@
             "cwd": "${workspaceFolder}/UnitTests",
             "console": "internalConsole",
             "justMyCode": false
-        },
-        {
-            "name": "Debug Specific Test",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/UnitTests/bin/Debug/net10.0/UnitTests.dll",
-            "args": [
-                "--test=${input:testName}"
-            ],
-            "cwd": "${workspaceFolder}/UnitTests",
-            "console": "internalConsole",
-            "justMyCode": false
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
-        }
-    ],
-    "inputs": [
-        {
-            "id": "testName",
-            "type": "promptString",
-            "description": "Enter test name or namespace to run (e.g., DITests.TestRegisterAndResolve)"
         }
     ]
 }

@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" name="UnitTests.dll" fullname="/Users/adam/Documents/GitHub/RFLibs/UnitTests/bin/Debug/net10.0/UnitTests.dll" testcasecount="17" result="Passed" start-time="2025-12-04T18:32:45.9366290Z" end-time="2025-12-04T18:32:49.4701910Z" duration="3.533539" total="17" passed="17" failed="0" inconclusive="0" skipped="0" warnings="0" asserts="66" random-seed="2084948543">
+  <command-line><![CDATA[/Users/adam/Documents/GitHub/RFLibs/UnitTests/bin/Debug/net10.0/UnitTests.dll]]></command-line>
+  <filter />
+  <test-suite type="Assembly" id="1019" name="UnitTests.dll" fullname="/Users/adam/Documents/GitHub/RFLibs/UnitTests/bin/Debug/net10.0/UnitTests.dll" runstate="Runnable" testcasecount="17" result="Passed" start-time="2025-12-04T18:32:45.9366290Z" end-time="2025-12-04T18:32:49.4701910Z" duration="3.533539" total="17" passed="17" failed="0" warnings="0" inconclusive="0" skipped="0" asserts="66">
+    <environment framework-version="4.2.2.0" clr-version="10.0.0" os-version="macOS 15.6.1" platform="Unix" cwd="/Users/adam/Documents/GitHub/RFLibs" machine-name="Mac" user="adam" user-domain="Mac" culture="en-US" uiculture="en-US" os-architecture="x64" />
+    <settings>
+      <setting name="WorkDirectory" value="/Users/adam/Documents/GitHub/RFLibs" />
+      <setting name="NumberOfTestWorkers" value="28" />
+    </settings>
+    <properties>
+      <property name="_PID" value="69154" />
+      <property name="_APPDOMAIN" value="UnitTests" />
+    </properties>
+    <test-suite type="TestSuite" id="1020" name="UnitTests" fullname="UnitTests" runstate="Runnable" testcasecount="17" result="Passed" start-time="2025-12-04T18:32:45.9380400Z" end-time="2025-12-04T18:32:49.4701560Z" duration="3.532105" total="17" passed="17" failed="0" warnings="0" inconclusive="0" skipped="0" asserts="66">
+      <test-suite type="TestFixture" id="1000" name="DITests" fullname="UnitTests.DITests" classname="UnitTests.DITests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2025-12-04T18:32:45.9384630Z" end-time="2025-12-04T18:32:45.9497210Z" duration="0.011258" total="12" passed="12" failed="0" warnings="0" inconclusive="0" skipped="0" asserts="26">
+        <test-case id="1001" name="DICanInjectDependencies" fullname="UnitTests.DITests.DICanInjectDependencies" methodname="DICanInjectDependencies" classname="UnitTests.DITests" runstate="Runnable" seed="161690863" result="Passed" start-time="2025-12-04T18:32:45.9394150Z" end-time="2025-12-04T18:32:45.9425610Z" duration="0.003168" asserts="1">
+          <properties>
+            <property name="Order" value="0" />
+          </properties>
+        </test-case>
+        <test-case id="1002" name="DICanBindMultipleServices" fullname="UnitTests.DITests.DICanBindMultipleServices" methodname="DICanBindMultipleServices" classname="UnitTests.DITests" runstate="Runnable" seed="130590052" result="Passed" start-time="2025-12-04T18:32:45.9431670Z" end-time="2025-12-04T18:32:45.9456340Z" duration="0.002468" asserts="5">
+          <properties>
+            <property name="Order" value="1" />
+          </properties>
+          <output><![CDATA[Test result: True
+Calculation: 5
+]]></output>
+        </test-case>
+        <test-case id="1003" name="DIContainerHandlesSceneScope" fullname="UnitTests.DITests.DIContainerHandlesSceneScope" methodname="DIContainerHandlesSceneScope" classname="UnitTests.DITests" runstate="Runnable" seed="1663773017" result="Passed" start-time="2025-12-04T18:32:45.9456550Z" end-time="2025-12-04T18:32:45.9460300Z" duration="0.000375" asserts="2">
+          <properties>
+            <property name="Order" value="3" />
+          </properties>
+        </test-case>
+        <test-case id="1004" name="DIHandlesSingletonScope" fullname="UnitTests.DITests.DIHandlesSingletonScope" methodname="DIHandlesSingletonScope" classname="UnitTests.DITests" runstate="Runnable" seed="568381450" result="Passed" start-time="2025-12-04T18:32:45.9460460Z" end-time="2025-12-04T18:32:45.9470860Z" duration="0.001040" asserts="2">
+          <properties>
+            <property name="Order" value="5" />
+          </properties>
+        </test-case>
+        <test-case id="1005" name="DICanResolve" fullname="UnitTests.DITests.DICanResolve" methodname="DICanResolve" classname="UnitTests.DITests" runstate="Runnable" seed="1110553779" result="Passed" start-time="2025-12-04T18:32:45.9470990Z" end-time="2025-12-04T18:32:45.9472030Z" duration="0.000104" asserts="2">
+          <properties>
+            <property name="Order" value="6" />
+          </properties>
+        </test-case>
+        <test-case id="1006" name="DIReturnsErrorWhenResolvingUnboundType" fullname="UnitTests.DITests.DIReturnsErrorWhenResolvingUnboundType" methodname="DIReturnsErrorWhenResolvingUnboundType" classname="UnitTests.DITests" runstate="Runnable" seed="229234435" result="Passed" start-time="2025-12-04T18:32:45.9472150Z" end-time="2025-12-04T18:32:45.9472630Z" duration="0.000048" asserts="1">
+          <properties>
+            <property name="Order" value="7" />
+          </properties>
+        </test-case>
+        <test-case id="1007" name="DIContainerCanInjectIntoObjectsWithNoInjectableFields" fullname="UnitTests.DITests.DIContainerCanInjectIntoObjectsWithNoInjectableFields" methodname="DIContainerCanInjectIntoObjectsWithNoInjectableFields" classname="UnitTests.DITests" runstate="Runnable" seed="387696982" result="Passed" start-time="2025-12-04T18:32:45.9472740Z" end-time="2025-12-04T18:32:45.9478360Z" duration="0.000562" asserts="1">
+          <properties>
+            <property name="Order" value="8" />
+          </properties>
+        </test-case>
+        <test-case id="1008" name="DIContainerClearRemovesAllBindings" fullname="UnitTests.DITests.DIContainerClearRemovesAllBindings" methodname="DIContainerClearRemovesAllBindings" classname="UnitTests.DITests" runstate="Runnable" seed="2085418502" result="Passed" start-time="2025-12-04T18:32:45.9478660Z" end-time="2025-12-04T18:32:45.9479230Z" duration="0.000057" asserts="2">
+          <properties>
+            <property name="Order" value="11" />
+          </properties>
+        </test-case>
+        <test-case id="1009" name="TransientLifetimeCreatesNewInstancesOnEachResolve" fullname="UnitTests.DITests.TransientLifetimeCreatesNewInstancesOnEachResolve" methodname="TransientLifetimeCreatesNewInstancesOnEachResolve" classname="UnitTests.DITests" runstate="Runnable" seed="1935901834" result="Passed" start-time="2025-12-04T18:32:45.9479340Z" end-time="2025-12-04T18:32:45.9481530Z" duration="0.000219" asserts="3">
+          <properties>
+            <property name="Order" value="12" />
+          </properties>
+        </test-case>
+        <test-case id="1010" name="DICanInjectIntoFields" fullname="UnitTests.DITests.DICanInjectIntoFields" methodname="DICanInjectIntoFields" classname="UnitTests.DITests" runstate="Runnable" seed="745597893" result="Passed" start-time="2025-12-04T18:32:45.9481650Z" end-time="2025-12-04T18:32:45.9483060Z" duration="0.000141" asserts="1">
+          <properties>
+            <property name="Order" value="13" />
+          </properties>
+          <output><![CDATA[Test result: True
+Calculation: 5
+]]></output>
+        </test-case>
+        <test-case id="1011" name="DICanInjectIntoProperties" fullname="UnitTests.DITests.DICanInjectIntoProperties" methodname="DICanInjectIntoProperties" classname="UnitTests.DITests" runstate="Runnable" seed="34905152" result="Passed" start-time="2025-12-04T18:32:45.9483210Z" end-time="2025-12-04T18:32:45.9491930Z" duration="0.000871" asserts="3">
+          <properties>
+            <property name="Order" value="14" />
+          </properties>
+        </test-case>
+        <test-case id="1012" name="DICanInjectIntoMixedFieldsAndProperties" fullname="UnitTests.DITests.DICanInjectIntoMixedFieldsAndProperties" methodname="DICanInjectIntoMixedFieldsAndProperties" classname="UnitTests.DITests" runstate="Runnable" seed="446678186" result="Passed" start-time="2025-12-04T18:32:45.9492040Z" end-time="2025-12-04T18:32:45.9494240Z" duration="0.000220" asserts="3">
+          <properties>
+            <property name="Order" value="15" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestSuite" id="1021" name="MVVM" fullname="UnitTests.MVVM" runstate="Runnable" testcasecount="5" result="Passed" start-time="2025-12-04T18:32:45.9381470Z" end-time="2025-12-04T18:32:49.4701500Z" duration="3.531992" total="5" passed="5" failed="0" warnings="0" inconclusive="0" skipped="0" asserts="40">
+        <test-suite type="TestFixture" id="1013" name="MvvmTests" fullname="UnitTests.MVVM.MvvmTests" classname="UnitTests.MVVM.MvvmTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2025-12-04T18:32:45.9501680Z" end-time="2025-12-04T18:32:49.4701340Z" duration="3.519956" total="5" passed="5" failed="0" warnings="0" inconclusive="0" skipped="0" asserts="40">
+          <test-case id="1014" name="TestPlayerModel" fullname="UnitTests.MVVM.MvvmTests.TestPlayerModel" methodname="TestPlayerModel" classname="UnitTests.MVVM.MvvmTests" runstate="Runnable" seed="706323447" result="Passed" start-time="2025-12-04T18:32:45.9503380Z" end-time="2025-12-04T18:32:45.9509030Z" duration="0.000565" asserts="2">
+            <properties>
+              <property name="Order" value="0" />
+            </properties>
+          </test-case>
+          <test-case id="1015" name="ModelTakesDamageWhenControllerAttacks" fullname="UnitTests.MVVM.MvvmTests.ModelTakesDamageWhenControllerAttacks" methodname="ModelTakesDamageWhenControllerAttacks" classname="UnitTests.MVVM.MvvmTests" runstate="Runnable" seed="1604760529" result="Passed" start-time="2025-12-04T18:32:45.9509170Z" end-time="2025-12-04T18:32:45.9514280Z" duration="0.000511" asserts="4">
+            <properties>
+              <property name="Order" value="1" />
+            </properties>
+          </test-case>
+          <test-case id="1016" name="PlayerCanTargetEnemyWithSpell" fullname="UnitTests.MVVM.MvvmTests.PlayerCanTargetEnemyWithSpell" methodname="PlayerCanTargetEnemyWithSpell" classname="UnitTests.MVVM.MvvmTests" runstate="Runnable" seed="331702410" result="Passed" start-time="2025-12-04T18:32:45.9514420Z" end-time="2025-12-04T18:32:45.9578380Z" duration="0.006396" asserts="5">
+            <properties>
+              <property name="Order" value="2" />
+            </properties>
+          </test-case>
+          <test-case id="1017" name="PlayerCanTargetThemselfWithSpell" fullname="UnitTests.MVVM.MvvmTests.PlayerCanTargetThemselfWithSpell" methodname="PlayerCanTargetThemselfWithSpell" classname="UnitTests.MVVM.MvvmTests" runstate="Runnable" seed="924476518" result="Passed" start-time="2025-12-04T18:32:45.9578600Z" end-time="2025-12-04T18:32:46.9627550Z" duration="1.004892" asserts="5">
+            <properties>
+              <property name="Order" value="3" />
+            </properties>
+          </test-case>
+          <test-case id="1018" name="MockButtonDemonstratesTwoWayBindingWithSpellCasting" fullname="UnitTests.MVVM.MvvmTests.MockButtonDemonstratesTwoWayBindingWithSpellCasting" methodname="MockButtonDemonstratesTwoWayBindingWithSpellCasting" classname="UnitTests.MVVM.MvvmTests" runstate="Runnable" seed="1578644082" result="Passed" start-time="2025-12-04T18:32:46.9629240Z" end-time="2025-12-04T18:32:49.4700380Z" duration="2.507106" asserts="24">
+            <properties>
+              <property name="Order" value="4" />
+            </properties>
+            <output><![CDATA[=== Mock Button Two-Way Binding Demo ===
+
+Initial State:
+  Health: 50
+  Mana: 100
+  Health: 50
+  Heal Button Enabled: True
+  Fireball Button Enabled: True
+
+Action: Click Heal Button
+  Health: 80 (healed 30)
+  Mana: 80 (spent 20 mana)
+  Heal Button Enabled: False (on cooldown!)
+
+Action: Try to click Heal Button again (should fail - cooldown)
+  Health: 80 (unchanged)
+  Mana: 80 (unchanged)
+  Heal Button Enabled: False
+
+Action: Click Fireball Button (target: Goblin)
+  Health: 25 (took 25 damage)
+  Mana: 65 (spent 15 mana)
+  Fireball Button Enabled: False (on cooldown!)
+
+Action: Spam Fireball Button (should fail - cooldown)
+  Goblin Health: 25 (unchanged from spam clicks)
+  Mana: 65 (unchanged)
+
+Action: Wait for cooldowns (simulating 2.5 seconds)...
+  Heal Button Enabled: True (cooldown expired!)
+  Fireball Button Enabled: True (cooldown expired!)
+
+Action: Click Fireball Button again (after cooldown)
+  Health: 0 (took another 25 damage)
+  Goblin is dead: True
+
+=== Demo Complete ===
+Two-way binding successfully demonstrated:
+  ✓ Button state syncs with command CanExecute
+  ✓ UI labels update automatically via bindings
+  ✓ Cooldowns prevent rapid casting
+  ✓ Mana is properly deducted
+  ✓ Damage/healing applied correctly
+]]></output>
+          </test-case>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

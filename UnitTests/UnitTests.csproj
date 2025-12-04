@@ -6,7 +6,9 @@
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <OutputType>Library</OutputType>
+        <OutputType>Exe</OutputType>
+        <StartupObject>UnitTests.Program</StartupObject>
+        <GenerateProgramFile>false</GenerateProgramFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,6 +17,7 @@
         <PackageReference Include="NUnit" Version="4.2.2"/>
         <PackageReference Include="NUnit.Analyzers" Version="4.3.0"/>
         <PackageReference Include="NUnit3TestAdapter" Version="4.6.0"/>
+        <PackageReference Include="NUnitLite" Version="4.2.2"/>
     </ItemGroup>
 
     <ItemGroup>

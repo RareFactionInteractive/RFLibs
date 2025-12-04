@@ -9,6 +9,17 @@
     "dotnet.testWindow.useTestingPlatformProtocol": false,
     "dotnet.unitTestDebuggingOptions": {
         "args": [],
-        "env": {}
+        "env": {},
+        "justMyCode": true,
+        "stopAtEntry": false
+    },
+    "dotrush.dotnetPath": "/opt/homebrew/bin/dotnet",
+    "dotrush.monoPath": "",
+    "dotrush.debuggerOptions": {
+        "justMyCode": true,
+        "enableStepFiltering": true,
+        "symbolOptions": {
+            "searchMicrosoftSymbolServer": false
+        }
     }
 }

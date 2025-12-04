@@ -11,7 +11,7 @@ namespace UnitTests.MVVM
         private readonly EnemyController _orcController = new(new Orc());
         private DummyLabelBinder _dummyLabelBinder;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             DI.Bind<TimeProvider>(() => DateTime.Now.Ticks);

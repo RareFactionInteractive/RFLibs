@@ -39,11 +39,11 @@ namespace RFLibs.DependencyInjection
             }
         }
         
-        public static Result<bool, DIErrors> Bind<TInterface>(TInterface implementation)
+        public static Result<TInterface, DIErrors> Bind<TInterface>(TInterface implementation)
         {
             if (implementation == null)
             {
-                return Result<bool, DIErrors>.Error(DIErrors.NullBinding);
+                return Result<TInterface, DIErrors>.Error(DIErrors.NullBinding);
             }
 
             var implementationType = implementation.GetType();
@@ -82,8 +82,29 @@ namespace RFLibs.DependencyInjection
                     return _sceneContainer.Bind(implementation, lifetime);
 
                 default:
-                    return Result<bool, DIErrors>.Error(DIErrors.NullBinding);
+                    return Result<TInterface, DIErrors>.Error(DIErrors.NullBinding);
             }
+        }
+
+        /// <summary>
+        /// Unbinds a service from the appropriate container (Global or Scene).
+        /// For Singletons, this allows rebinding with a new instance.
+        /// </summary>
+        public static bool Unbind<TInterface>()
+        {
+            // Try scene container first
+            if (_sceneContainer != null && _sceneContainer.Unbind<TInterface>())
+            {
+                return true;
+            }
+
+            // Fall back to global container
+            if (_globalContainer != null && _globalContainer.Unbind<TInterface>())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static Result<T, DIErrors> Resolve<T>()

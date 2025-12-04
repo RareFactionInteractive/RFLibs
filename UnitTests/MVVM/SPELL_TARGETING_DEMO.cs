@@ -1,6 +1,9 @@
 using System;
 using RFLibs.DependencyInjection;
 using UnitTests.MVVM;
+using UnitTests.MVVM.Models;
+using UnitTests.MVVM.Spells;
+using UnitTests.MVVM.ViewModels;
 
 namespace SpellTargetingExample
 {

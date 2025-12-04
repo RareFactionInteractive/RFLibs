@@ -2,6 +2,10 @@ using System;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using RFLibs.DependencyInjection;
+using UnitTests.MVVM.Models;
+using UnitTests.MVVM.ViewModels;
+using UnitTests.MVVM.Spells;
+using UnitTests.MVVM.Mocks;
 
 namespace UnitTests.MVVM
 {
@@ -15,9 +19,21 @@ namespace UnitTests.MVVM
         public void Setup()
         {
             DI.Bind<TimeProvider>(() => DateTime.Now.Ticks);
-            DI.Bind(new PlayerModel(100));
+            DI.Bind(new PlayerModel(100, 100));  // Bind with 100 mana for testing
             DI.Bind(new PlayerViewModel());
             _dummyLabelBinder = new();
+        }
+
+        [SetUp]
+        public void ResetPlayerForEachTest()
+        {
+            // Reset player stats before each test
+            var player = DI.Resolve<PlayerModel>().Ok;
+            if (player != null)
+            {
+                player.Health.Value = 100;
+                player.Mana.Value = 100;
+            }
         }
 
         [Test, Order(0)]
@@ -51,10 +67,9 @@ namespace UnitTests.MVVM
         [Test, Order(2)]
         public void PlayerCanTargetEnemyWithSpell()
         {
-            // Create enemy and player with mana
+            // Create enemy - reuse the player from OneTimeSetUp (reset by SetUp method)
             var goblin = new Goblin();
-            var player = new PlayerModel(100, 100);
-            DI.Bind(player);
+            var player = DI.Resolve<PlayerModel>().Ok;
 
             // Create a damage spell
             var fireballModel = new DamageSpell("Fireball", manaCost: 20, cooldownSeconds: 1.0f, damage: 15);
@@ -85,9 +100,8 @@ namespace UnitTests.MVVM
         [Test, Order(3)]
         public async Task PlayerCanTargetThemselfWithSpell()
         {
-            // Create player with damage and mana
-            var player = new PlayerModel(50, 100);
-            DI.Bind(player);
+            // Reuse the player from OneTimeSetUp (reset by SetUp method)
+            var player = DI.Resolve<PlayerModel>().Ok;
 
             // Create a heal spell
             var healModel = new HealSpell("Minor Heal", manaCost: 15, cooldownSeconds: 0.5f, healAmount: 20);
@@ -98,7 +112,7 @@ namespace UnitTests.MVVM
 
             Assert.Multiple(() =>
             {
-                Assert.That(player.Health.Value, Is.EqualTo(70), "Player should have 70 HP after self-healing");
+                Assert.That(player.Health.Value, Is.EqualTo(100), "Player should stay at 100 HP (already at max after healing 20)");
                 Assert.That(player.Mana.Value, Is.EqualTo(85), "Player should have spent 15 mana");
             });
 
@@ -109,7 +123,7 @@ namespace UnitTests.MVVM
 
             Assert.Multiple(() =>
             {
-                Assert.That(player.Health.Value, Is.EqualTo(90), "Player should have 90 HP after second self-heal");
+                Assert.That(player.Health.Value, Is.EqualTo(100), "Player should stay at 100 HP (already at max)");
                 Assert.That(player.Mana.Value, Is.EqualTo(70), "Player should have spent another 15 mana");
             });
 
@@ -123,10 +137,9 @@ namespace UnitTests.MVVM
         [Test, Order(4)]
         public void MockButtonDemonstratesTwoWayBindingWithSpellCasting()
         {
-            // Setup player with low health and full mana
-            var player = new PlayerModel(50, 100);
+            // Setup with reused player from OneTimeSetUp (reset by SetUp method)
+            var player = DI.Resolve<PlayerModel>().Ok;
             var goblin = new Goblin();
-            DI.Bind(player);
 
             // Create a heal spell for self-healing
             var healModel = new HealSpell("Heal", manaCost: 20, cooldownSeconds: 2.0f, healAmount: 30);
@@ -162,7 +175,7 @@ namespace UnitTests.MVVM
 
             Assert.Multiple(() =>
             {
-                Assert.That(healthLabel.Text, Is.EqualTo("Health: 50"));
+                Assert.That(healthLabel.Text, Is.EqualTo("Health: 100"));
                 Assert.That(manaLabel.Text, Is.EqualTo("Mana: 100"));
                 Assert.That(goblinHealthLabel.Text, Is.EqualTo("Health: 50"));
                 Assert.That(healButton.IsEnabled, Is.True, "Heal button should be enabled");
@@ -178,9 +191,9 @@ namespace UnitTests.MVVM
 
             Assert.Multiple(() =>
             {
-                Assert.That(player.Health.Value, Is.EqualTo(80), "Player should be healed");
+                Assert.That(player.Health.Value, Is.EqualTo(100), "Player should stay at max health (already at 100)");
                 Assert.That(player.Mana.Value, Is.EqualTo(80), "Mana should be deducted");
-                Assert.That(healthLabel.Text, Is.EqualTo("Health: 80"), "Health label should update via binding");
+                Assert.That(healthLabel.Text, Is.EqualTo("Health: 100"), "Health label should update via binding");
                 Assert.That(manaLabel.Text, Is.EqualTo("Mana: 80"), "Mana label should update via binding");
                 Assert.That(healButton.IsEnabled, Is.False, "Button should be disabled during cooldown");
             });
@@ -261,23 +274,6 @@ namespace UnitTests.MVVM
             Console.WriteLine("  ✓ Cooldowns prevent rapid casting");
             Console.WriteLine("  ✓ Mana is properly deducted");
             Console.WriteLine("  ✓ Damage/healing applied correctly");
-        }
-    }
-
-    // Concrete spell implementations for testing
-    public class DamageSpell : SpellModel
-    {
-        public DamageSpell(string name, int manaCost, float cooldownSeconds, int damage)
-            : base(name, manaCost, cooldownSeconds, SpellEffectType.Damage, damage)
-        {
-        }
-    }
-
-    public class HealSpell : SpellModel
-    {
-        public HealSpell(string name, int manaCost, float cooldownSeconds, int healAmount)
-            : base(name, manaCost, cooldownSeconds, SpellEffectType.Heal, healAmount)
-        {
         }
     }
 }

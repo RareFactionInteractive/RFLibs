@@ -19,21 +19,36 @@ namespace RFLibs.DependencyInjection
 
         private readonly Dictionary<Type, RegistrationInfo> _registrations = new();
 
-        public Result<bool, DIErrors> Bind<TInterface>(TInterface implementation, Lifetime lifetime)
+        public Result<TInterface, DIErrors> Bind<TInterface>(TInterface implementation, Lifetime lifetime)
         {
             if (implementation == null)
             {
-                return Result<bool, DIErrors>.Error(DIErrors.NullBinding);
+                return Result<TInterface, DIErrors>.Error(DIErrors.NullBinding);
             }
 
-            _registrations[typeof(TInterface)] = new RegistrationInfo
+            var interfaceType = typeof(TInterface);
+            
+            // Check if already bound as a Singleton
+            if (_registrations.TryGetValue(interfaceType, out var existingRegistration) &&
+                existingRegistration.Lifetime == Lifetime.Singleton)
+            {
+                // Return the existing singleton instance instead of rebinding
+                return Result<TInterface, DIErrors>.OK((TInterface)existingRegistration.Instance);
+            }
+
+            _registrations[interfaceType] = new RegistrationInfo
             {
                 Instance = implementation,
                 Lifetime = lifetime,
                 ConcreteType = implementation.GetType()
             };
             
-            return Result<bool, DIErrors>.OK(true);
+            return Result<TInterface, DIErrors>.OK(implementation);
+        }
+
+        public bool Unbind<TInterface>()
+        {
+            return _registrations.Remove(typeof(TInterface));
         }
 
         public Result<T, DIErrors> Resolve<T>()

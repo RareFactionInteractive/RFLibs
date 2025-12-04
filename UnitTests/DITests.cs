@@ -303,6 +303,39 @@ namespace UnitTests
             });
         }
 
+        [Test, Order(16)]
+        public void DICanUnbindAndRebindSingleton()
+        {
+            // Bind a singleton instance
+            var originalService = new DummyTestService();
+            DI.Bind<ITestService>(originalService);
+
+            var resolved1 = DI.Resolve<ITestService>();
+            Assert.That(resolved1.Ok, Is.SameAs(originalService), "Should resolve to the original instance");
+
+            // Try to bind again without unbinding - should return the existing singleton
+            var newService = new DummyTestService();
+            var bindResult = DI.Bind<ITestService>(newService);
+            Assert.That(bindResult.Ok, Is.SameAs(originalService), "Binding again should return the existing singleton");
+
+            // Unbind the singleton
+            var unbindResult = DI.Unbind<ITestService>();
+            Assert.That(unbindResult, Is.True, "Unbind should succeed");
+
+            // After unbinding, resolve should fail
+            var resolvedAfterUnbind = DI.Resolve<ITestService>();
+            Assert.That(resolvedAfterUnbind.IsErr, "Should not resolve after unbinding");
+
+            // Rebind with new instance
+            DI.Bind<ITestService>(newService);
+            var resolved2 = DI.Resolve<ITestService>();
+            Assert.Multiple(() =>
+            {
+                Assert.That(resolved2.Ok, Is.SameAs(newService), "Should resolve to the new instance after rebinding");
+                Assert.That(resolved2.Ok, Is.Not.SameAs(originalService), "Should not be the original instance");
+            });
+        }
+
         [TearDown]
         public void TearDown()
         {

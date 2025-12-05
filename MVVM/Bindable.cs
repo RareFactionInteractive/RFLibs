@@ -19,9 +19,14 @@ namespace RFLibs.MVVM
 
         public event Action<T> OnValueChanged;
 
-        public Bindable(T initialValue = default)
+        public Bindable(T initialValue = default, Action<T>? onValueChanged = null)
         {
             _value = initialValue;
+
+            if (onValueChanged != null)
+            {
+                OnValueChanged += onValueChanged;
+            }   
         }
     }
 }

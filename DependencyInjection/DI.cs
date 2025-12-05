@@ -107,29 +107,30 @@ namespace RFLibs.DependencyInjection
             return false;
         }
 
-        public static Result<T, DIErrors> Resolve<T>()
+        public static bool Resolve<T>(out Result<T, DIErrors> result)
         {
             // Try global container first
             if (_globalContainer != null)
             {
-                var result = _globalContainer.Resolve<T>();
+                if(_globalContainer.Resolve<T>(out result))
                 if (result.IsOk)
                 {
-                    return result;
+                    return true;
                 }
             }
 
             // Fall back to scene container
             if (_sceneContainer != null)
             {
-                var result = _sceneContainer.Resolve<T>();
+                if(_sceneContainer.Resolve<T>(out result))
                 if (result.IsOk)
                 {
-                    return result;
+                    return true;
                 }
             }
 
-            return Result<T, DIErrors>.Error(DIErrors.CannotResolve);
+            result = Result<T, DIErrors>.Error(DIErrors.CannotResolve);
+            return false;
         }
 
         public static void InjectDependencies(object instance)
@@ -144,14 +145,16 @@ namespace RFLibs.DependencyInjection
                 // Use DI.Resolve which checks both containers
                 var resolveMethod = typeof(DI).GetMethod(nameof(Resolve), BindingFlags.Public | BindingFlags.Static);
                 var genericResolve = resolveMethod.MakeGenericMethod(field.FieldType);
-                var result = genericResolve.Invoke(null, null);
                 
-                var resultType = result.GetType();
-                var isOkProperty = resultType.GetProperty("IsOk");
-                var okProperty = resultType.GetProperty("Ok");
+                // Create an out parameter for the result
+                object?[] parameters = new object?[1];
+                bool success = (bool)genericResolve.Invoke(null, parameters);
                 
-                if ((bool)isOkProperty.GetValue(result))
+                if (success)
                 {
+                    var result = parameters[0];
+                    var resultType = result.GetType();
+                    var okProperty = resultType.GetProperty("Ok");
                     field.SetValue(instance, okProperty.GetValue(result));
                 }
             }
@@ -166,14 +169,16 @@ namespace RFLibs.DependencyInjection
                 // Use DI.Resolve which checks both containers
                 var resolveMethod = typeof(DI).GetMethod(nameof(Resolve), BindingFlags.Public | BindingFlags.Static);
                 var genericResolve = resolveMethod.MakeGenericMethod(property.PropertyType);
-                var result = genericResolve.Invoke(null, null);
                 
-                var resultType = result.GetType();
-                var isOkProperty = resultType.GetProperty("IsOk");
-                var okProperty = resultType.GetProperty("Ok");
+                // Create an out parameter for the result
+                object?[] parameters = new object?[1];
+                bool success = (bool)genericResolve.Invoke(null, parameters);
                 
-                if ((bool)isOkProperty.GetValue(result))
+                if (success)
                 {
+                    var result = parameters[0];
+                    var resultType = result.GetType();
+                    var okProperty = resultType.GetProperty("Ok");
                     property.SetValue(instance, okProperty.GetValue(result));
                 }
             }

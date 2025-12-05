@@ -51,12 +51,14 @@ namespace RFLibs.DependencyInjection
             return _registrations.Remove(typeof(TInterface));
         }
 
-        public Result<T, DIErrors> Resolve<T>()
+        public bool Resolve<T>(out Result<T, DIErrors> result)
         {
-            var result = Resolve(typeof(T));
-            return result.IsOk ? 
-                Result<T, DIErrors>.OK((T)result.Ok) :
+            var val = Resolve(typeof(T));
+            result = val.IsOk ? 
+                Result<T, DIErrors>.OK((T)val.Ok) :
                 Result<T, DIErrors>.Error(DIErrors.CannotResolve);
+
+            return result.IsOk;
         }
 
         private Result<object, bool> Resolve(Type type)

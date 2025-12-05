@@ -42,14 +42,14 @@ namespace UnitTests.MVVM.ViewModels
 
         private bool CanCast()
         {
-            return _player!.Mana.Value >= _model.ManaCost &&
+            return _player!.Mana >= _model.ManaCost &&
                    _model.IsOffCooldown(_timeProvider!());
         }
 
         private bool CanCastOnTarget(ITargetable target)
         {
             return target != null &&
-                   _player!.Mana.Value >= _model.ManaCost &&
+                   _player!.Mana >= _model.ManaCost &&
                    _model.IsOffCooldown(_timeProvider!());
         }
 
@@ -57,7 +57,7 @@ namespace UnitTests.MVVM.ViewModels
         {
             if (!CanCast()) return;
 
-            _player!.Mana.Value -= _model.ManaCost;
+            _player!.Mana -= _model.ManaCost;
             _model.MarkCast(_timeProvider!());
 
             // Apply effect to current target if set, otherwise to player (self-cast)
@@ -68,7 +68,7 @@ namespace UnitTests.MVVM.ViewModels
         {
             if (!CanCastOnTarget(target)) return;
 
-            _player!.Mana.Value -= _model.ManaCost;
+            _player!.Mana -= _model.ManaCost;
             _model.MarkCast(_timeProvider!());
 
             ApplyEffect(target);

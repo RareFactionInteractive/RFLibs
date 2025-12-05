@@ -1,3 +1,4 @@
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 using System;
 using NUnit.Framework;
 using RFLibs.DependencyInjection;
@@ -40,76 +41,76 @@ namespace UnitTests
         [Scope(Scope.Scene)]
         private class LoggerService : ILoggerService
         {
-            public string LastMessage { get; private set; }
+            public string LastMessage { get; private set; } = string.Empty;
             public void Log(string message) => LastMessage = message;
         }
 
         private class DummyTestApplication
         {
-            [Inject] public ITestService _testService;
-            public bool Test => _testService.PerformTest();
+            [Inject] public ITestService? _testService;
+            public bool Test => _testService!.PerformTest();
 
-            public new int GetHashCode() => _testService.GetHashCode();
+            public new int GetHashCode() => _testService!.GetHashCode();
         }
 
         private class ComplexApplication
         {
-            [Inject] private ITestService _testService;
-            [Inject] private ICalculatorService _calculatorService;
-            [Inject] private ILoggerService _loggerService;
+            [Inject] private ITestService? _testService;
+            [Inject] private ICalculatorService? _calculatorService;
+            [Inject] private ILoggerService? _loggerService;
 
             public bool TestAll()
             {
-                var result = _testService.PerformTest();
+                var result = _testService!.PerformTest();
                 Console.WriteLine($"Test result: {result}");
-                var calculation = _calculatorService.Add(2, 3);
+                var calculation = _calculatorService!.Add(2, 3);
                 Console.WriteLine($"Calculation: {calculation}");
-                _loggerService.Log($"Test result: {result}, Calculation: {calculation}");
+                _loggerService!.Log($"Test result: {result}, Calculation: {calculation}");
                 return result && calculation == 5;
             }
 
-            public ILoggerService GetLogger() => _loggerService;
+            public ILoggerService GetLogger() => _loggerService!;
         }
 
         private class ServiceWithDependency
         {
-            [Inject] private ILoggerService _logger;
+            [Inject] private ILoggerService? _logger;
 
             public void DoWork()
             {
-                _logger.Log("Work completed");
+                _logger!.Log("Work completed");
             }
 
-            public ILoggerService GetLogger() => _logger;
+            public ILoggerService GetLogger() => _logger!;
         }
 
         private class ApplicationWithPropertyInjection
         {
-            [Inject] public ITestService TestService { get; set; }
-            [Inject] public ICalculatorService CalculatorService { get; set; }
+            [Inject] public ITestService? TestService { get; set; }
+            [Inject] public ICalculatorService? CalculatorService { get; set; }
 
             public bool RunTests()
             {
-                var testResult = TestService.PerformTest();
-                var calcResult = CalculatorService.Add(10, 20);
+                var testResult = TestService!.PerformTest();
+                var calcResult = CalculatorService!.Add(10, 20);
                 return testResult && calcResult == 30;
             }
         }
 
         private class ApplicationWithMixedInjection
         {
-            [Inject] private ITestService _testServiceField;
-            [Inject] public ICalculatorService CalculatorProperty { get; set; }
+            [Inject] private ITestService? _testServiceField;
+            [Inject] public ICalculatorService? CalculatorProperty { get; set; }
 
             public bool RunMixedTest()
             {
-                var testResult = _testServiceField.PerformTest();
-                var calcResult = CalculatorProperty.Add(5, 7);
+                var testResult = _testServiceField!.PerformTest();
+                var calcResult = CalculatorProperty!.Add(5, 7);
                 return testResult && calcResult == 12;
             }
 
-            public ITestService GetFieldService() => _testServiceField;
-            public ICalculatorService GetPropertyService() => CalculatorProperty;
+            public ITestService GetFieldService() => _testServiceField!;
+            public ICalculatorService GetPropertyService() => CalculatorProperty!;
         }
 
         [Test, Order(0)]
@@ -177,8 +178,10 @@ namespace UnitTests
 
             Assert.Multiple(() =>
             {
-                Assert.That(app1.GetHashCode(), Is.EqualTo(DI.Resolve<ITestService>().Ok.GetHashCode()));
-                Assert.That(app2.GetHashCode(), Is.EqualTo(DI.Resolve<ITestService>().Ok.GetHashCode()));
+                DI.Resolve<ITestService>(out var result1);
+                Assert.That(app1.GetHashCode(), Is.EqualTo(result1.Ok?.GetHashCode()));
+                DI.Resolve<ITestService>(out var result2);
+                Assert.That(app2.GetHashCode(), Is.EqualTo(result2.Ok?.GetHashCode()));
             });
         }
 
@@ -188,11 +191,11 @@ namespace UnitTests
             var testService = new DummyTestService();
             DI.Bind<ITestService>(testService);
 
-            var resolved = DI.Resolve<ITestService>();
+            bool success = DI.Resolve<ITestService>(out var resolved);
 
             Assert.Multiple(() =>
             {
-                Assert.That(resolved.IsOk);
+                Assert.That(success, Is.True);
                 Assert.That(resolved.Ok, Is.SameAs(testService));
             });
         }
@@ -201,7 +204,8 @@ namespace UnitTests
         public void DIReturnsErrorWhenResolvingUnboundType()
         {
             DI.Clear();
-            Assert.That(DI.Resolve<ITestService>().IsErr);
+            bool success = DI.Resolve<ITestService>(out _);
+            Assert.That(success, Is.False);
         }
 
         [Test, Order(8)]
@@ -219,9 +223,11 @@ namespace UnitTests
         {
             DI.Bind<ITestService>(new DummyTestService());
 
-            Assert.That(DI.Resolve<ITestService>().IsOk);
+            bool beforeClear = DI.Resolve<ITestService>(out _);
+            Assert.That(beforeClear, Is.True);
             DI.Clear();
-            Assert.That(DI.Resolve<ITestService>().IsErr);
+            bool afterClear = DI.Resolve<ITestService>(out _);
+            Assert.That(afterClear, Is.False);
         }
 
         [Test, Order(12)]
@@ -230,13 +236,13 @@ namespace UnitTests
             // CalculatorService is marked with [Lifetime(Lifetime.Transient)]
             DI.Bind<ICalculatorService>(new CalculatorService());
 
-            var instance1 = DI.Resolve<ICalculatorService>();
-            var instance2 = DI.Resolve<ICalculatorService>();
+            bool success1 = DI.Resolve<ICalculatorService>(out var instance1);
+            bool success2 = DI.Resolve<ICalculatorService>(out var instance2);
 
             Assert.Multiple(() =>
             {
-                Assert.That(instance1.IsOk, "First resolve should succeed");
-                Assert.That(instance2.IsOk, "Second resolve should succeed");
+                Assert.That(success1, Is.True, "First resolve should succeed");
+                Assert.That(success2, Is.True, "Second resolve should succeed");
                 Assert.That(Object.ReferenceEquals(instance1.Ok, instance2.Ok), Is.False, 
                     "Transient should create new instances, not reuse the same one");
             });
@@ -310,7 +316,7 @@ namespace UnitTests
             var originalService = new DummyTestService();
             DI.Bind<ITestService>(originalService);
 
-            var resolved1 = DI.Resolve<ITestService>();
+            bool success1 = DI.Resolve<ITestService>(out var resolved1);
             Assert.That(resolved1.Ok, Is.SameAs(originalService), "Should resolve to the original instance");
 
             // Try to bind again without unbinding - should return the existing singleton
@@ -323,12 +329,12 @@ namespace UnitTests
             Assert.That(unbindResult, Is.True, "Unbind should succeed");
 
             // After unbinding, resolve should fail
-            var resolvedAfterUnbind = DI.Resolve<ITestService>();
-            Assert.That(resolvedAfterUnbind.IsErr, "Should not resolve after unbinding");
+            bool successAfterUnbind = DI.Resolve<ITestService>(out _);
+            Assert.That(successAfterUnbind, Is.False, "Should not resolve after unbinding");
 
             // Rebind with new instance
             DI.Bind<ITestService>(newService);
-            var resolved2 = DI.Resolve<ITestService>();
+            bool success2 = DI.Resolve<ITestService>(out var resolved2);
             Assert.Multiple(() =>
             {
                 Assert.That(resolved2.Ok, Is.SameAs(newService), "Should resolve to the new instance after rebinding");
@@ -343,3 +349,4 @@ namespace UnitTests
         }
     }
 }
+#pragma warning restore CS8618

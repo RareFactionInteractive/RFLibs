@@ -24,4 +24,18 @@
         </Reference>
     </ItemGroup>
 
+    <Target Name="CopyToPluginPaths" AfterTargets="Build">
+        <!-- Copy RFLibs.dll to paths specified in RFLIBS_PLUGIN_PATHS environment variable -->
+        <!-- Set env var before build: export RFLIBS_PLUGIN_PATHS="/path1;/path2" && dotnet build -->
+        <PropertyGroup>
+            <PluginPaths Condition="'$(RFLIBS_PLUGIN_PATHS)' != ''">$(RFLIBS_PLUGIN_PATHS)</PluginPaths>
+            <PluginPaths Condition="'$(PluginPaths)' == ''">/Users/adam/Documents/GitHub/RFCPIG/RFCPIG_UnityProject/Assets/Plugins</PluginPaths>
+        </PropertyGroup>
+        <Message Text="Copying RFLibs.dll to: $(PluginPaths)" Importance="high" />
+        <ItemGroup>
+            <PluginDestinations Include="$(PluginPaths.Split(';'))" />
+        </ItemGroup>
+        <Copy SourceFiles="$(OutDir)RFLibs.dll" DestinationFolder="%(PluginDestinations.Identity)" ContinueOnError="true" Condition="'%(PluginDestinations.Identity)' != ''" />
+    </Target>
+
 </Project>

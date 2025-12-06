@@ -331,6 +331,65 @@ namespace UnitTests
             });
         }
 
+        [Test, Order(18)]
+        public void DIResolveOrDefaultReturnsInstanceWhenBound()
+        {
+            var testService = new DummyTestService();
+            DI.Bind<ITestService>(testService);
+
+            var resolved = DI.ResolveOrDefault<ITestService>();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(resolved, Is.Not.Null, "ResolveOrDefault should return the instance when bound");
+                Assert.That(resolved, Is.SameAs(testService), "Should return the exact bound instance");
+            });
+        }
+
+        [Test, Order(19)]
+        public void DIResolveOrDefaultReturnsDefaultWhenNotBound()
+        {
+            DI.Clear();
+            
+            var resolved = DI.ResolveOrDefault<ITestService>();
+
+            Assert.That(resolved, Is.Null, "ResolveOrDefault should return null (default) for reference types when not bound");
+        }
+
+        [Test, Order(20)]
+        public void DIResolveOrDefaultWithConstructorArgs()
+        {
+            // Bind a calculator service (transient)
+            DI.Bind<ICalculatorService>(new CalculatorService());
+
+            var resolved = DI.ResolveOrDefault<ICalculatorService>(Array.Empty<object>());
+
+            Assert.That(resolved, Is.Not.Null, "ResolveOrDefault with constructor args should return instance when bound");
+        }
+
+        [Test, Order(21)]
+        public void DIResolveOrDefaultWithNullConstructorArgs()
+        {
+            DI.Clear();
+            
+            var resolved = DI.ResolveOrDefault<ICalculatorService>(null);
+
+            Assert.That(resolved, Is.Null, "ResolveOrDefault should return default when service not bound, even with null constructor args");
+        }
+
+        [Test, Order(22)]
+        public void DIResolveOrDefaultDoesNotThrowOnMissingService()
+        {
+            DI.Clear();
+
+            // This should not throw, unlike ResolveOrThrow
+            Assert.DoesNotThrow(() =>
+            {
+                var resolved = DI.ResolveOrDefault<ILoggerService>();
+                Assert.That(resolved, Is.Null);
+            });
+        }
+
         [TearDown]
         public void TearDown()
         {

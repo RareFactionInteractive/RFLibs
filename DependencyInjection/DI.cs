@@ -160,7 +160,6 @@ namespace RFLibs.DependencyInjection
         /// <summary>
         /// Convenience method to resolve a service and get the instance directly.
         /// Throws an exception if resolution fails. Use this for fail-fast behavior and method chaining.
-        /// Enables method chaining: ResolveOrThrow&lt;Foo&gt;().DoSomething()
         /// </summary>
         public static T ResolveOrThrow<T>(object[] constructorParams = null)
         {
@@ -170,6 +169,12 @@ namespace RFLibs.DependencyInjection
                 throw new InvalidOperationException($"Failed to resolve {typeof(T).Name}: {result.Err}");
             }
             return result.Ok;
+        }
+
+        public static T ResolveOrDefault<T>(object[] constructorParams = null)
+        {
+            var result = Resolve<T>(constructorParams ?? Array.Empty<object>());
+            return result.IsOk ? result.Ok : default(T);
         }
 
         // Delegate for generic field injection

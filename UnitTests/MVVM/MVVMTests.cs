@@ -23,22 +23,24 @@ namespace UnitTests.MVVM
             DI.Bind(new PlayerModel("Player", 100, 10, 100));
             DI.Bind(new PlayerViewModel());
 
+            // Resolve the singletons so we can verify they're the same instance
+            _playerModel = DI.Resolve<PlayerModel>().Ok;
+            _playerVM = DI.Resolve<PlayerViewModel>().Ok;
+
             _dummyLabelBinder = new();
         }
 
         [SetUp]
         public void ResetPlayerForEachTest()
         {
-            // Reset player stats before each test
-            Assert.That(DI.Resolve<PlayerModel>(out var playerResult), Is.True, "PlayerModel should resolve");
-            _playerModel = playerResult.Ok;
+            Assert.Multiple(() =>
+            {
+                Assert.That(DI.Resolve<PlayerModel>().Ok, Is.SameAs(_playerModel), "Should resolve to the same PlayerModel instance");
+                Assert.That(DI.Resolve<PlayerViewModel>().Ok, Is.SameAs(_playerVM), "Should resolve to the same PlayerViewModel instance");
+            });
 
-            Assert.That(DI.Resolve<PlayerViewModel>(out var playerVMResult), Is.True, "PlayerViewModel should resolve");
-            _playerVM = playerVMResult.Ok;
-            
-            var player = playerResult.Ok;
-            player.Health = 100;
-            player.Mana = 100;
+            _playerModel.Health = 100;
+            _playerModel.Mana = 100;
         }
 
         [Test, Order(0)]

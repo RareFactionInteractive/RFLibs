@@ -107,30 +107,133 @@ namespace RFLibs.DependencyInjection
             return false;
         }
 
-        public static bool Resolve<T>(out Result<T, DIErrors> result)
+        public static Result<T, DIErrors> Resolve<T>(object[] constructorArgs = null)
         {
-            // Try global container first
-            if (_globalContainer != null)
+            var typeToResolve = typeof(T);
+            
+            // Read Scope attribute (default: Global)
+            var scopeAttribute = (ScopeAttribute)Attribute.GetCustomAttribute(
+                typeToResolve, 
+                typeof(ScopeAttribute)
+            );
+            var scope = scopeAttribute?.Scope ?? Scope.Global;
+
+            // Try the primary container first based on scope
+            switch (scope)
             {
-                if(_globalContainer.Resolve<T>(out result))
-                if (result.IsOk)
-                {
-                    return true;
-                }
+                case Scope.Global:
+                    if (_globalContainer == null)
+                    {
+                        InitializeGlobal();
+                    }
+                    if (_globalContainer.Resolve<T>(out var globalResult, constructorArgs))
+                    {
+                        return globalResult;
+                    }
+                    // Fall through to check scene container as fallback
+                    if (_sceneContainer != null && _sceneContainer.Resolve<T>(out var fallbackResult, constructorArgs))
+                    {
+                        return fallbackResult;
+                    }
+                    break;
+
+                case Scope.Scene:
+                    if (_sceneContainer == null)
+                    {
+                        InitializeScene();
+                    }
+                    if (_sceneContainer.Resolve<T>(out var sceneResult, constructorArgs))
+                    {
+                        return sceneResult;
+                    }
+                    // Fall through to check global container as fallback
+                    if (_globalContainer != null && _globalContainer.Resolve<T>(out var fallbackResult2, constructorArgs))
+                    {
+                        return fallbackResult2;
+                    }
+                    break;
             }
 
-            // Fall back to scene container
-            if (_sceneContainer != null)
-            {
-                if(_sceneContainer.Resolve<T>(out result))
-                if (result.IsOk)
-                {
-                    return true;
-                }
-            }
+            return Result<T, DIErrors>.Error(DIErrors.CannotResolve);
+        }
 
-            result = Result<T, DIErrors>.Error(DIErrors.CannotResolve);
-            return false;
+        /// <summary>
+        /// Convenience method to resolve a service and get the instance directly.
+        /// Throws an exception if resolution fails. Use this for fail-fast behavior and method chaining.
+        /// Enables method chaining: ResolveOrThrow&lt;Foo&gt;().DoSomething()
+        /// </summary>
+        public static T ResolveOrThrow<T>(object[] constructorParams = null)
+        {
+            var result = Resolve<T>(constructorParams ?? Array.Empty<object>());
+            if (result.IsErr)
+            {
+                throw new InvalidOperationException($"Failed to resolve {typeof(T).Name}: {result.Err}");
+            }
+            return result.Ok;
+        }
+
+        // Delegate for generic field injection
+        private static Delegate CreateFieldInjector(Type fieldType)
+        {
+            try
+            {
+                var method = typeof(DI).GetMethod("GenericInjectField", BindingFlags.NonPublic | BindingFlags.Static);
+                if (method == null)
+                {
+                    throw new InvalidOperationException($"GenericInjectField method not found");
+                }
+                var generic = method.MakeGenericMethod(fieldType);
+                return Delegate.CreateDelegate(
+                    typeof(Action<object, FieldInfo>),
+                    generic
+                );
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateFieldInjector error: {ex}");
+                throw;
+            }
+        }
+
+        // Delegate for generic property injection
+        private static Delegate CreatePropertyInjector(Type propertyType)
+        {
+            try
+            {
+                var method = typeof(DI).GetMethod("GenericInjectProperty", BindingFlags.NonPublic | BindingFlags.Static);
+                if (method == null)
+                {
+                    throw new InvalidOperationException($"GenericInjectProperty method not found");
+                }
+                var generic = method.MakeGenericMethod(propertyType);
+                return Delegate.CreateDelegate(
+                    typeof(Action<object, PropertyInfo>),
+                    generic
+                );
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreatePropertyInjector error: {ex}");
+                throw;
+            }
+        }
+
+        private static void GenericInjectField<T>(object instance, FieldInfo field)
+        {
+            var result = Resolve<T>();
+            if (result.IsOk)
+            {
+                field.SetValue(instance, result.Ok);
+            }
+        }
+
+        private static void GenericInjectProperty<T>(object instance, PropertyInfo property)
+        {
+            var result = Resolve<T>();
+            if (result.IsOk)
+            {
+                property.SetValue(instance, result.Ok);
+            }
         }
 
         public static void InjectDependencies(object instance)
@@ -142,21 +245,8 @@ namespace RFLibs.DependencyInjection
 
             foreach (var field in fields)
             {
-                // Use DI.Resolve which checks both containers
-                var resolveMethod = typeof(DI).GetMethod(nameof(Resolve), BindingFlags.Public | BindingFlags.Static);
-                var genericResolve = resolveMethod.MakeGenericMethod(field.FieldType);
-                
-                // Create an out parameter for the result
-                object?[] parameters = new object?[1];
-                bool success = (bool)genericResolve.Invoke(null, parameters);
-                
-                if (success)
-                {
-                    var result = parameters[0];
-                    var resultType = result.GetType();
-                    var okProperty = resultType.GetProperty("Ok");
-                    field.SetValue(instance, okProperty.GetValue(result));
-                }
+                var injector = CreateFieldInjector(field.FieldType);
+                ((Action<object, FieldInfo>)injector)(instance, field);
             }
 
             // Inject into properties
@@ -166,36 +256,17 @@ namespace RFLibs.DependencyInjection
 
             foreach (var property in properties)
             {
-                // Use DI.Resolve which checks both containers
-                var resolveMethod = typeof(DI).GetMethod(nameof(Resolve), BindingFlags.Public | BindingFlags.Static);
-                var genericResolve = resolveMethod.MakeGenericMethod(property.PropertyType);
-                
-                // Create an out parameter for the result
-                object?[] parameters = new object?[1];
-                bool success = (bool)genericResolve.Invoke(null, parameters);
-                
-                if (success)
-                {
-                    var result = parameters[0];
-                    var resultType = result.GetType();
-                    var okProperty = resultType.GetProperty("Ok");
-                    property.SetValue(instance, okProperty.GetValue(result));
-                }
+                var injector = CreatePropertyInjector(property.PropertyType);
+                ((Action<object, PropertyInfo>)injector)(instance, property);
             }
         }
 
         public static void Clear()
         {
-            if(_globalContainer != null)
-            {
-                _globalContainer.Clear();
-                _globalContainer = null;
-            }
-            if(_sceneContainer != null)
-            {
-                _sceneContainer.Clear();
-                _sceneContainer = null;
-            }
+            _globalContainer?.Clear();
+            _globalContainer = null;
+            _sceneContainer?.Clear();
+            _sceneContainer = null;
         }
 
         /// <summary>
@@ -204,11 +275,8 @@ namespace RFLibs.DependencyInjection
         /// </summary>
         public static void ClearSceneContainer()
         {
-            if (_sceneContainer != null)
-            {
-                _sceneContainer.Clear();
-                _sceneContainer = null;
-            }
+            _sceneContainer?.Clear();
+            _sceneContainer = null;
         }
     }
 }

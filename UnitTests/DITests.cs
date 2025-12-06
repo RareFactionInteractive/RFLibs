@@ -1,5 +1,7 @@
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 using System;
+using System.Net.NetworkInformation;
+using System.Runtime;
 using NUnit.Framework;
 using RFLibs.DependencyInjection;
 using RFLibs.DependencyInjection.Attributes;
@@ -178,10 +180,9 @@ namespace UnitTests
 
             Assert.Multiple(() =>
             {
-                DI.Resolve<ITestService>(out var result1);
-                Assert.That(app1.GetHashCode(), Is.EqualTo(result1.Ok?.GetHashCode()));
-                DI.Resolve<ITestService>(out var result2);
-                Assert.That(app2.GetHashCode(), Is.EqualTo(result2.Ok?.GetHashCode()));
+                var baseTestService = DI.ResolveOrThrow<ITestService>();
+                Assert.That(app1.GetHashCode(), Is.EqualTo(baseTestService.GetHashCode()));
+                Assert.That(app2.GetHashCode(), Is.EqualTo(baseTestService.GetHashCode()));
             });
         }
 
@@ -191,21 +192,16 @@ namespace UnitTests
             var testService = new DummyTestService();
             DI.Bind<ITestService>(testService);
 
-            bool success = DI.Resolve<ITestService>(out var resolved);
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(success, Is.True);
-                Assert.That(resolved.Ok, Is.SameAs(testService));
-            });
+            var resolved = DI.ResolveOrThrow<ITestService>();
+            Assert.That(resolved, Is.SameAs(testService));
         }
 
         [Test, Order(7)]
         public void DIReturnsErrorWhenResolvingUnboundType()
         {
             DI.Clear();
-            bool success = DI.Resolve<ITestService>(out _);
-            Assert.That(success, Is.False);
+            var result = DI.Resolve<ITestService>();
+            Assert.That(result.IsErr, Is.True);
         }
 
         [Test, Order(8)]
@@ -221,31 +217,25 @@ namespace UnitTests
         [Test, Order(11)]
         public void DIContainerClearRemovesAllBindings()
         {
-            DI.Bind<ITestService>(new DummyTestService());
-
-            bool beforeClear = DI.Resolve<ITestService>(out _);
-            Assert.That(beforeClear, Is.True);
+            Assert.That(DI.Bind<ITestService>(new DummyTestService()).IsOk);
+            Assert.That(DI.Resolve<ITestService>().IsOk);
+            
             DI.Clear();
-            bool afterClear = DI.Resolve<ITestService>(out _);
-            Assert.That(afterClear, Is.False);
+            
+            Assert.That(DI.Resolve<ITestService>().IsErr);
         }
 
         [Test, Order(12)]
         public void TransientLifetimeCreatesNewInstancesOnEachResolve()
         {
             // CalculatorService is marked with [Lifetime(Lifetime.Transient)]
-            DI.Bind<ICalculatorService>(new CalculatorService());
+            Assert.That(DI.Bind<ICalculatorService>(new CalculatorService()).IsOk);
 
-            bool success1 = DI.Resolve<ICalculatorService>(out var instance1);
-            bool success2 = DI.Resolve<ICalculatorService>(out var instance2);
-
-            Assert.Multiple(() =>
-            {
-                Assert.That(success1, Is.True, "First resolve should succeed");
-                Assert.That(success2, Is.True, "Second resolve should succeed");
-                Assert.That(Object.ReferenceEquals(instance1.Ok, instance2.Ok), Is.False, 
-                    "Transient should create new instances, not reuse the same one");
-            });
+            Assert.That(
+                ReferenceEquals(
+                    DI.ResolveOrThrow<ICalculatorService>(),
+                    DI.ResolveOrThrow<ICalculatorService>()), Is.False,
+                "Transient lifetime should create new instances on each resolve");
         }
 
         [Test, Order(13)]
@@ -316,8 +306,7 @@ namespace UnitTests
             var originalService = new DummyTestService();
             DI.Bind<ITestService>(originalService);
 
-            bool success1 = DI.Resolve<ITestService>(out var resolved1);
-            Assert.That(resolved1.Ok, Is.SameAs(originalService), "Should resolve to the original instance");
+            Assert.That(DI.Resolve<ITestService>().Ok, Is.SameAs(originalService), "Should resolve to the original instance");
 
             // Try to bind again without unbinding - should return the existing singleton
             var newService = new DummyTestService();
@@ -329,16 +318,16 @@ namespace UnitTests
             Assert.That(unbindResult, Is.True, "Unbind should succeed");
 
             // After unbinding, resolve should fail
-            bool successAfterUnbind = DI.Resolve<ITestService>(out _);
-            Assert.That(successAfterUnbind, Is.False, "Should not resolve after unbinding");
+            
+            Assert.That(DI.Resolve<ITestService>().IsErr, "Should not resolve after unbinding");
 
             // Rebind with new instance
             DI.Bind<ITestService>(newService);
-            bool success2 = DI.Resolve<ITestService>(out var resolved2);
+            var newResolve = DI.ResolveOrThrow<ITestService>();
             Assert.Multiple(() =>
             {
-                Assert.That(resolved2.Ok, Is.SameAs(newService), "Should resolve to the new instance after rebinding");
-                Assert.That(resolved2.Ok, Is.Not.SameAs(originalService), "Should not be the original instance");
+                Assert.That(newResolve, Is.SameAs(newService), "Should resolve to the new instance after rebinding");
+                Assert.That(newResolve, Is.Not.SameAs(originalService), "Should not be the original instance");
             });
         }
 

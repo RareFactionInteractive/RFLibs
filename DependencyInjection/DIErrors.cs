@@ -4,6 +4,7 @@
     {
       InvalidType,
       CannotResolve,
-      NullBinding
+      NullBinding,
+      TransientClassInstantiationFailed
     }
 }

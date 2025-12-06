@@ -51,9 +51,9 @@ namespace RFLibs.DependencyInjection
             return _registrations.Remove(typeof(TInterface));
         }
 
-        public bool Resolve<T>(out Result<T, DIErrors> result)
+        public bool Resolve<T>(out Result<T, DIErrors> result, object[] constructorArgs = null)
         {
-            var val = Resolve(typeof(T));
+            var val = Resolve(typeof(T), constructorArgs);
             result = val.IsOk ? 
                 Result<T, DIErrors>.OK((T)val.Ok) :
                 Result<T, DIErrors>.Error(DIErrors.CannotResolve);
@@ -61,28 +61,28 @@ namespace RFLibs.DependencyInjection
             return result.IsOk;
         }
 
-        private Result<object, bool> Resolve(Type type)
+        private Result<object, DIErrors> Resolve(Type type, object[] constructorArgs = null)
         {
             if (!_registrations.TryGetValue(type, out var registration))
             {
-                return Result<object, bool>.Error(false);
+                return Result<object, DIErrors>.Error(DIErrors.CannotResolve);
             }
 
             // For Singleton, return the cached instance
             if (registration.Lifetime == Lifetime.Singleton)
             {
-                return Result<object, bool>.OK(registration.Instance);
+                return Result<object, DIErrors>.OK(registration.Instance);
             }
 
             // For Transient, create a new instance
             try
             {
-                var newInstance = Activator.CreateInstance(registration.ConcreteType);
-                return Result<object, bool>.OK(newInstance);
+                var newInstance = Activator.CreateInstance(registration.ConcreteType, constructorArgs);
+                return Result<object, DIErrors>.OK(newInstance);
             }
             catch
             {
-                return Result<object, bool>.Error(false);
+                return Result<object, DIErrors>.Error(DIErrors.TransientClassInstantiationFailed);
             }
         }
 
